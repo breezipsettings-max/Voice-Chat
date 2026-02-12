@@ -1,7 +1,6 @@
 {
   "name": "breezip-vc-render-server",
   "version": "1.0.0",
-  "description": "Parallel Voice Chat Render Server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
