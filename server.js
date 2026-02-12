@@ -3,30 +3,31 @@ const cors = require('cors');
 const app = express();
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); 
+app.use(express.json({ limit: '50mb' }));
 
-let globalVoiceBuffer = {}; 
+let voiceData = {};
 
-app.post('/sync', (req, res) => {
-    const { userId, audioChunk, timestamp } = req.body;
+--// WE USE THE ROOT '/' SO THERE ARE NO SUB-NAMES TO FAIL
+app.post('/', (req, res) => {
+    const { userId, data } = req.body;
+    if (userId) {
+        voiceData[userId] = { 
+            audio: data, 
+            ts: Date.now() 
+        };
+    }
     
-    // Store the audio chunk with a timestamp
-    globalVoiceBuffer[userId] = {
-        data: audioChunk,
-        time: timestamp
-    };
-
-    // Only send back data that is NEW (less than 2 seconds old)
-    let freshData = {};
+    --// Clean up old data (older than 3 seconds) to keep it fast
     const now = Date.now();
-    for (let id in globalVoiceBuffer) {
-        if (now - globalVoiceBuffer[id].time < 2000) {
-            freshData[id] = globalVoiceBuffer[id].data;
-        }
+    for (let id in voiceData) {
+        if (now - voiceData[id].ts > 3000) delete voiceData[id];
     }
 
-    res.json(freshData);
+    res.status(200).json(voiceData);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`VC Render Server live on port ${PORT}`));
+--// RENDER REQUIREMENT: Listen on 0.0.0.0
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`VC RENDER SERVER RUNNING ON PORT ${PORT}`);
+});
