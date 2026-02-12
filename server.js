@@ -1,17 +1,32 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
-app.use(express.json());
 
-let voiceStreams = {}; // Holds global buffers
+app.use(cors());
+app.use(express.json({ limit: '50mb' })); 
 
-app.post('/send', (req, res) => {
-    const { userId, audioData } = req.body;
-    voiceStreams[userId] = audioData;
-    res.sendStatus(200);
+let globalVoiceBuffer = {}; 
+
+app.post('/sync', (req, res) => {
+    const { userId, audioChunk, timestamp } = req.body;
+    
+    // Store the audio chunk with a timestamp
+    globalVoiceBuffer[userId] = {
+        data: audioChunk,
+        time: timestamp
+    };
+
+    // Only send back data that is NEW (less than 2 seconds old)
+    let freshData = {};
+    const now = Date.now();
+    for (let id in globalVoiceBuffer) {
+        if (now - globalVoiceBuffer[id].time < 2000) {
+            freshData[id] = globalVoiceBuffer[id].data;
+        }
+    }
+
+    res.json(freshData);
 });
 
-app.get('/receive', (req, res) => {
-    res.json(voiceStreams);
-});
-
-app.listen(3000, () => console.log("Render Server Active"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`VC Render Server live on port ${PORT}`));
