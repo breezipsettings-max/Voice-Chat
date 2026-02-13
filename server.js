@@ -10,7 +10,7 @@ var voiceData = {};
 // Root route to handle global sync
 app.post('/', function(req, res) {
     var userId = req.body.userId;
-    var data = req.body.data; // This will hold {muted, isDead, teamCol}
+    var data = req.body.data; 
     
     if (userId) {
         voiceData[userId] = { 
@@ -19,18 +19,20 @@ app.post('/', function(req, res) {
         };
     }
     
-    // Clean up data older than 3 seconds
-    var now = Date.now();
-    for (var id in voiceData) {
-        if (now - voiceData[id].ts > 3000) {
-            delete voiceData[id];
-        }
-    }
-
+    // Return the global state so other clients can see the "Dead Icon" and "Mic"
     res.status(200).json(voiceData);
 });
 
-// Port binding for Render
+// CLEANUP: Run this once every 5 seconds instead of every request
+setInterval(function() {
+    var now = Date.now();
+    for (var id in voiceData) {
+        if (now - voiceData[id].ts > 5000) { // Increased to 5s to prevent flickering
+            delete voiceData[id];
+        }
+    }
+}, 5000);
+
 var PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', function() {
     console.log("GLOBAL VC SERVER ACTIVE ON PORT " + PORT);
