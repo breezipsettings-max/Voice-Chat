@@ -22,7 +22,7 @@ app.get('/', function(req, res) {
                 <div style="background:#111; padding:10px; border:1px solid #333;">
                     <p style="color:#888;">// CONNECTION_LOG:</p>
                     <ul style="list-style:none; padding:0;">
-                        ${userList || '<li style="color:#555;">Waiting for Xeno connections...</li>'}
+                        ${userList || '<li style="color:#555;">Waiting for connections...</li>'}
                     </ul>
                 </div>
                 <p style="font-size:12px; margin-top:20px; color:#444;">BANDICAM_MPEG4_COMPATIBLE // 2026_BUILD</p>
